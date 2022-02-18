@@ -1,0 +1,22 @@
+master:
+  - host: rke2-up-master1
+    ip: 64.225.0.182
+  - host: rke2-up-master2
+    ip: 64.225.8.212
+  - host: rke2-up-master3
+    ip: 64.225.10.133
+
+worker:
+  - host: rke2-up-work1
+    ip: 64.225.10.85
+  - host: rke2-up-work2
+    ip: 64.225.4.241
+  - host: rke2-up-work3
+    ip: 64.225.10.118
+
+ssh_key_path: "~/.ssh/id_rsa"
+ssh_user: "root"
+ssh_hostkeycheck: false
+ssh_port: "22"
+ssh_timeout: "10"
+sudo: "false"
