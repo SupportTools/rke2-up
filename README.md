@@ -29,7 +29,7 @@ Usage: scripts/rke2-up.sh [-m master|worker|all] [-v v1.21.6+rke2r1] [-s 192.168
 
 Run the following command on the first node in the new cluster to bootstrap the node.
 ```bash
-rke2-up -m all -v v1.21.6+rke2r1 -s
+rke2-up -m all -v v1.21.6+rke2r1
 ```
 
 At the end of this command, you should see an output like this. Please save this as you will need it to join the other nodes to the cluster.
@@ -50,7 +50,7 @@ build-rke2 -m all -v v1.21.6+rke2r1 -s 10.128.0.6 -t MyAFakeKey::server:YouShoul
 
 Run the following command on the first master node in the new cluster to bootstrap the node.
 ```bash
-rke2-up -m master -v v1.21.6+rke2r1 -s
+rke2-up -m master -v v1.21.6+rke2r1
 ```
 
 At the end of this command, you should see an output like this. Please save this as you will need it to join the other nodes to the cluster.
