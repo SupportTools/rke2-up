@@ -24,6 +24,7 @@ Usage: scripts/rke2-up.sh [-p PrivateIP|auto] [-P PublicIP|auto|disable] [-m mas
 ```
 
 #### Options
+```
 -p PrivateIP: Private IP address of the node.
     auto: auto-detect the private IP address of the node.
     PrivateIP: use the specified IP address. (Exameple: 10.132.191.210)
@@ -41,6 +42,7 @@ Usage: scripts/rke2-up.sh [-p PrivateIP|auto] [-P PublicIP|auto|disable] [-m mas
     Bootstrap IP: Use the specified IP address of the bootstrap node. (Exameple: 10.132.191.210) Note: This should be the private IP address of the bootstrap node.
 -t Token: Token of the bootstrap node.
     Token: Use the specified token of the bootstrap node. (Exameple: K1075c2da4946626e73...)
+```
 
 ## Creating a RKE2 cluster
 
