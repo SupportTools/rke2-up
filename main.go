@@ -4,45 +4,67 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 
-	"gopkg.in/yaml.v3"
+	"github.com/Sirupsen/logrus"
+	"github.com/reenjii/logflag"
+	"gopkg.in/yaml.v2"
 )
 
+var command string
+
 type Config struct {
-	SshKeyPath string   `yaml:"ssh_key_path",default:"~/.ssh/id_rsa"`
-	SshUser    string   `yaml:"ssh_user",default:"root"`
-	SshPort    string   `yaml:"ssh_port",default:"22"`
-	SshTimeout string   `yaml:"ssh_timeout",default:"10"`
-	SshSudo    string   `yaml:"ssh_sudo",default:"false"`
-	MasterData []Master `yaml:"master"`
-	WorkerData []Worker `yaml:"worker"`
-}
-
-type Master struct {
-	Host string `yaml:"host"`
-	Ip   string `yaml:"ip"`
-}
-
-type Worker struct {
-	Host string `yaml:"host"`
-	Ip   string `yaml:"ip"`
+	Master []struct {
+		Host      string `yaml:"host"`
+		IP        string `yaml:"ip"`
+		Port      int    `yaml:"port"`
+		Privateip string `yaml:"privateip,omitempty"`
+		Publicip  string `yaml:"publicip,omitempty"`
+		User      string `yaml:"user,omitempty"`
+		Key       string `yaml:"key,omitempty"`
+		NodeTaint []struct {
+			Taint string `yaml:"taint"`
+		} `yaml:"node-taint,omitempty"`
+	} `yaml:"master"`
+	Worker []struct {
+		Host      string `yaml:"host"`
+		IP        string `yaml:"ip"`
+		Port      int    `yaml:"port"`
+		Privateip string `yaml:"privateip,omitempty"`
+		Publicip  string `yaml:"publicip,omitempty"`
+		User      string `yaml:"user,omitempty"`
+		Key       string `yaml:"key,omitempty"`
+		NodeTaint []struct {
+			Taint string `yaml:"taint"`
+		} `yaml:"node-taint,omitempty"`
+	} `yaml:"worker"`
+	Global struct {
+		SSH struct {
+			User                  string `yaml:"user"`
+			Key                   string `yaml:"key"`
+			Timeout               int    `yaml:"timeout"`
+			Port                  int    `yaml:"port"`
+			StrictHostKeyChecking string `yaml:"strict-host-key-checking"`
+		} `yaml:"ssh"`
+		Rke2 struct {
+			Version string   `yaml:"version"`
+			TLSSan  []string `yaml:"tls-san"`
+		} `yaml:"rke2"`
+	} `yaml:"global"`
 }
 
 func NewConfig(configPath string) (*Config, error) {
 	config := &Config{}
-	file, err := os.Open(configPath)
+	file, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
-
-	d := yaml.NewDecoder(file)
-
-	if err := d.Decode(&config); err != nil {
-		return nil, err
+	err = yaml.Unmarshal(file, config)
+	if err != nil {
+		panic(err)
 	}
 
 	return config, nil
@@ -61,7 +83,6 @@ func ValidateConfigPath(path string) error {
 
 func ParseFlags() (string, error) {
 	var configPath string
-
 	flag.StringVar(&configPath, "config", "./config.yml", "path to config file")
 
 	flag.Parse()
@@ -74,54 +95,135 @@ func ParseFlags() (string, error) {
 }
 
 func (config Config) Run() {
-	fmt.Println("Settings:")
-	fmt.Printf("ssh_key_path: %s\n", config.SshKeyPath)
-	fmt.Printf("ssh_user: %s\n", config.SshUser)
-	fmt.Printf("ssh_port: %s\n", config.SshPort)
-	fmt.Printf("ssh_timeout: %s\n", config.SshTimeout)
-	fmt.Printf("ssh_sudo: %s\n", config.SshSudo)
+	logrus.Debug("Global Settings")
+	logrus.Debug("SSH Settings")
+	logrus.Debug("SSH User: ", config.Global.SSH.User)
+	logrus.Debug("SSH Key: ", config.Global.SSH.Key)
+	logrus.Debug("SSH Timeout: ", config.Global.SSH.Timeout)
+	logrus.Debug("SSH Port: ", config.Global.SSH.Port)
+	logrus.Debug("SSH StrictHostKeyChecking: ", config.Global.SSH.StrictHostKeyChecking)
+	logrus.Debug("RKE2 Settings")
+	logrus.Debug("RKE2 Version: ", config.Global.Rke2.Version)
+	logrus.Debug("RKE2 TLSSan: ", config.Global.Rke2.TLSSan)
 
-	fmt.Println("Master Nodes:")
-	for _, master := range config.MasterData {
-		fmt.Printf("Hostname: %s\n", master.Host)
-		fmt.Printf("Ip: %s\n", master.Ip)
+	logrus.Debug("Master Nodes:")
+	for _, master := range config.Master {
+		logrus.Debug("Hostname: ", master.Host)
+		logrus.Debug("IP: ", master.IP)
 	}
 
-	fmt.Println("Worker Nodes:")
-	for _, worker := range config.WorkerData {
-		fmt.Printf("Hostname: %s\n", worker.Host)
-		fmt.Printf("Ip: %s\n", worker.Ip)
+	logrus.Debug("Worker Nodes:")
+	for _, worker := range config.Worker {
+		logrus.Debug("Hostname: ", worker.Host)
+		logrus.Debug("IP: ", worker.IP)
 	}
 
-	fmt.Println("Verifing SSH access to all nodes...")
-
-	for _, master := range config.MasterData {
-		if err := CheckSSH(master.Ip, config); err != nil {
-			log.Fatalf("SSH access to %s failed: %s", master.Ip, err)
+	logrus.Info("Verifying SSH connectivity to all nodes")
+	command = "echo 'SSH access OK'"
+	for _, master := range config.Master {
+		if _, err := RunSSH(master.IP, master.Key, master.User, master.Port, config, command); err != nil {
+			log.Fatalf("SSH access to %s failed: %s", master.IP, err)
+		} else {
+			logrus.Info("SSH access to ", master.IP, " was Successful")
 		}
 	}
-	for _, worker := range config.WorkerData {
-		if err := CheckSSH(worker.Ip, config); err != nil {
-			log.Fatalf("SSH access to %s failed: %s", worker.Ip, err)
+	for _, worker := range config.Worker {
+		if _, err := RunSSH(worker.IP, worker.Key, worker.User, worker.Port, config, command); err != nil {
+			log.Fatalf("SSH access to %s failed: %s", worker.IP, err)
+		} else {
+			logrus.Info("SSH access to ", worker.IP, " was Successful")
 		}
+	}
+
+	logrus.Info("Installing RKE2 on all master nodes...")
+	rke2Type := "server"
+	if config.Global.Rke2.Version == "" {
+		logrus.Debug("RKE2 Version is not set, defaulting to latest")
+		command = fmt.Sprintf("curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE=%s sh -", rke2Type)
+	} else {
+		logrus.Debug("RKE2 Version is set to: ", config.Global.Rke2.Version)
+		command = fmt.Sprintf("curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION=%s INSTALL_RKE2_TYPE=%s sh -", config.Global.Rke2.Version, rke2Type)
+	}
+	for _, master := range config.Master {
+		if _, err := RunSSH(master.IP, master.Key, master.User, master.Port, config, command); err != nil {
+			log.Fatalf("RKE2 install failed on %s with error %s", master.IP, err)
+		} else {
+			logrus.Info("RKE2 install on ", master.IP, " was Successful")
+		}
+	}
+
+	logrus.Info("Installing RKE2 on all worker nodes...")
+	if config.Global.Rke2.Version == "" {
+		logrus.Debug("RKE2 Version is not set, defaulting to latest")
+		command = fmt.Sprintf("curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE=agent sh -")
+	} else {
+		command = fmt.Sprintf("curl -sfL https://get.rke2.io | INSTALL_RKE2_VERSION=%s INSTALL_RKE2_TYPE=agent sh -", config.Global.Rke2.Version)
+	}
+	for _, master := range config.Master {
+		if _, err := RunSSH(master.IP, master.Key, master.User, master.Port, config, command); err != nil {
+			log.Fatalf("RKE2 install failed on %s with error %s", master.IP, err)
+		} else {
+			logrus.Info("RKE2 install on ", master.IP, " was Successful")
+		}
+	}
+
+	logrus.Info("Detecting if RKE2 cluster is already created or will it need to be bootstrapped...")
+	command = "cat /var/lib/rancher/rke2/server/token"
+	var token string
+	for _, master := range config.Master {
+		tokenCandidate, err := RunSSH(master.IP, master.Key, master.User, master.Port, config, command)
+		if err != nil {
+			log.Fatalf("RKE2 cluster detection failed on %s with error %s", master.IP, err)
+		} else {
+			logrus.Info("RKE2 cluster detection on ", master.IP, " was Successful")
+		}
+		logrus.Debug("Token Candidate: ", tokenCandidate)
+		if tokenCandidate != "" {
+			token = tokenCandidate
+			logrus.Info("RKE2 cluster detected on ", master.IP, " with token: ", token)
+		}
+	}
+	if token != "" {
+		logrus.Info("RKE2 cluster already exists, skipping bootstrap...")
+	} else {
+		logrus.Info("RKE2 cluster does not exist, bootstrapping...")
 	}
 
 }
 
-func CheckSSH(ip string, config Config) error {
-	fmt.Printf("Checking SSH access to %s\n", ip)
-	cmd := exec.Command("ssh", "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-o", "ConnectTimeout="+config.SshTimeout, "-i", config.SshKeyPath, config.SshUser+"@"+ip, "echo 'SSH access OK'")
+func RunSSH(ip string, key string, user string, port int, config Config, command string) (string, error) {
+
+	if key == "" {
+		key = config.Global.SSH.Key
+	}
+	if user == "" {
+		user = config.Global.SSH.User
+	}
+	if port == 0 {
+		port = config.Global.SSH.Port
+	}
+
+	logrus.Debug("IP: ", ip)
+	logrus.Debug("Key: ", key)
+	logrus.Debug("User: ", user)
+	logrus.Debug("Port: ", port)
+
+	cmd := exec.Command("ssh", "-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null", "-i", key, user+"@"+ip, command)
 	var out bytes.Buffer
+	logrus.Debug("Executing: ", cmd)
+	logrus.Debug("Output: ", out)
 	cmd.Stdout = &out
 	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("%s\n", out.String())
-	return err
+	return out.String(), err
 }
 
 func main() {
+	flag.Parse()
+	logflag.Parse()
+
 	cfgPath, err := ParseFlags()
 	if err != nil {
 		log.Fatal(err)

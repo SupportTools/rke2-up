@@ -1,10 +1,16 @@
 master:
   - host: rke2-up-master1
     ip: 64.225.0.182
+    node-taint: 
+      - taint: "CriticalAddonsOnly=true:NoExecute"
   - host: rke2-up-master2
     ip: 64.225.8.212
+    node-taint: 
+      - taint: "CriticalAddonsOnly=true:NoExecute"
   - host: rke2-up-master3
     ip: 64.225.10.133
+    node-taint: 
+      - taint: "CriticalAddonsOnly=true:NoExecute"
 
 worker:
   - host: rke2-up-work1
@@ -14,9 +20,12 @@ worker:
   - host: rke2-up-work3
     ip: 64.225.10.118
 
-ssh_key_path: "~/.ssh/id_rsa"
-ssh_user: "root"
-ssh_hostkeycheck: false
-ssh_port: "22"
-ssh_timeout: "10"
-sudo: "false"
+global:
+  ssh:
+   user: root
+   key: ~/.ssh/id_rsa
+   timeout: 10
+   port: 22
+   strict-host-key-checking: no
+  rke2:
+   version: "v1.21.5+rke2r1"   
