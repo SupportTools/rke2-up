@@ -20,8 +20,27 @@ sudo mv rke2-up /usr/local/bin/
 ### Help
 ```bash
 rke2-up --help
-Usage: scripts/rke2-up.sh [-m master|worker|all] [-v v1.21.6+rke2r1] [-s 10.132.191.210] [-t K1075c2da4946626e73...]
+Usage: scripts/rke2-up.sh [-p PrivateIP|auto] [-P PublicIP|auto|disable] [-m master|worker|all] [-v v1.21.6+rke2r1] [-s 10.132.191.210] [-t K1075c2da4946626e73...]
 ```
+
+#### Options
+-p PrivateIP: Private IP address of the node.
+    auto: auto-detect the private IP address of the node.
+    PrivateIP: use the specified IP address. (Exameple: 10.132.191.210)
+-P PublicIP: Public IP address of the node.
+    auto: auto-detect the public IP address of the node.
+    disable: disable public IP address.
+    PublicIP: use the specified IP address. (Exameple: 1.2.3.4)
+-m master|worker|all: Type of node.
+    master: Joins node as master node.
+    worker: Joins node as worker node.
+    all: Joins node as master node and worker node.
+-v v1.21.6+rke2r1: Version of RKE.
+    RKE2 Version: Use the specified version of RKE2. (Exameple: v1.21.6+rke2r1)
+-s Bootstrap IP: IP address of the bootstrap node.
+    Bootstrap IP: Use the specified IP address of the bootstrap node. (Exameple: 10.132.191.210) Note: This should be the private IP address of the bootstrap node.
+-t Token: Token of the bootstrap node.
+    Token: Use the specified token of the bootstrap node. (Exameple: K1075c2da4946626e73...)
 
 ## Creating a RKE2 cluster
 

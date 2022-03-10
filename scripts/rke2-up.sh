@@ -1,8 +1,8 @@
 #!/bin/bash
 
-usage() { echo "Usage: $0 [-m master|worker|all] [-v v1.21.6+rke2r1] [-s 192.168.1.100] [-t K1075c2da4946626e73...] " 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-p PrivateIP|auto] [-P PublicIP|auto|disable] [-m master|worker|all] [-v v1.21.6+rke2r1] [-s 192.168.1.100] [-t K1075c2da4946626e73...] " 1>&2; exit 1; }
 
-while getopts ":m:v:s:t:" o; do
+while getopts ":m:v:s:t:p:P:" o; do
     case "${o}" in
         m)
             m=${OPTARG}
@@ -10,6 +10,12 @@ while getopts ":m:v:s:t:" o; do
             ;;
         v)
             v=${OPTARG}
+            ;;
+        p)
+            p=${OPTARG}
+            ;;
+        P)
+            P=${OPTARG}
             ;;
         s)
             s=${OPTARG}
@@ -33,6 +39,18 @@ then
   usage
 fi
 
+test-ip() {
+  if [[ ! $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "Invalid IP address"
+    return 1
+  fi
+  if [[ $1 == '127.0.0.1' ]]; then
+    echo "Found loopback"
+    return 1
+  fi
+  return 0
+}
+
 if [ -z "${v}" ];
 then
   export INSTALL_RKE2_VERSION=""
@@ -54,20 +72,68 @@ else
 fi
 
 echo "Collecting IPs..."
-privateip=`hostname -i | awk '{print $1}'`
-echo "Private IP: $privateip"
+if [[ "${p}" == "auto" ]]
+then
+  echo "Checking using hostname -i..."
+  privateip=`hostname -i | awk '{print $1}'`
+  if test-ip $privateip; then
+    echo "Found private IP: $privateip"
+  else
+    privateip=""
+  fi
+  if [[ $privateip == "" ]]; then
+    echo "Checking using ip addr show eth0..."
+    privateip=$(ip addr show eth0 | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '  ')
+    if test-ip $privateip; then
+      echo "Found private IP: $privateip"
+    else
+      privateip=""
+    fi
+  fi
+  if [[ $privateip == "" ]]; then
+    echo "Checking using ip addr show ens160..."
+    privateip=$(ip addr show ens160 | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '  ')
+    if test-ip $privateip; then
+      echo "Found private IP: $privateip"
+    else
+      privateip=""
+    fi
+  fi
+  if [[ $privateip == "" ]]; then
+    echo "Checking using ip addr show bond0..."
+    privateip=$(ip addr show bond0 | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '  ')
+    if test-ip $privateip; then
+      echo "Found private IP: $privateip"
+    else
+      privateip=""
+    fi
+  fi
+else
+  privateip=$p
+fi
+
 if [[ -z $privateip ]]
 then
-  echo "No private IP detected"
+  echo "No private IP detected or set"
   exit 2
 fi
-publicip=`curl -s ifconfig.me.`
+if [[ "${P}" == "auto" ]]; then
+  publicip=`curl -s ifconfig.me.`
+elif [[ ! -z $P ]]; then
+  publicip=$P
+  if test-ip $publicip; then
+    echo "Found public IP: $publicip"
+  else
+    publicip=""
+  fi
+elif [[ "${P}" == "disable" ]]; then
+  echo "Public IP disabled"
+  publicip=""
+else
+  echo "No public IP detected or set"
+  exit 2
+fi
 echo "Public IP: $publicip"
-if [[ -z $publicip ]]
-then
-  echo "No public IP detected"
-  exit 2
-fi
 
 echo "Creating RKE2 config..."
 mkdir -p /etc/rancher/rke2/
@@ -89,11 +155,13 @@ then
   echo 'profile: "cis-1.5"' >> /etc/rancher/rke2/config.yaml  
   echo 'selinux: true' >> /etc/rancher/rke2/config.yaml  
   echo "advertise-address: ${privateip}" >> /etc/rancher/rke2/config.yaml
-  echo 'tls-san:' >> /etc/rancher/rke2/config.yaml
-  echo "  - ${publicip}" >> /etc/rancher/rke2/config.yaml
+  echo "node-ip: ${privateip}" >> /etc/rancher/rke2/config.yaml
 fi
-echo "node-ip: ${privateip}" >> /etc/rancher/rke2/config.yaml
-echo "node-external-ip: ${publicip}" >> /etc/rancher/rke2/config.yaml
+if [[ ! -z $publicip ]]; then
+  echo 'tls-san:' >> /etc/rancher/rke2/config.yaml
+  echo "  - ${publicip}" >> /etc/rancher/rke2/config.yaml  
+  echo "node-external-ip: ${publicip}" >> /etc/rancher/rke2/config.yaml
+fi
 if [[ "${m}" ==  "master" ]]
 then
   echo 'node-taint:' >> /etc/rancher/rke2/config.yaml
