@@ -13,9 +13,15 @@ while getopts ":m:v:s:t:p:P:" o; do
             ;;
         p)
             p=${OPTARG}
+            if [[ -z "${p}" ]]; then
+                p="auto"
+            fi
             ;;
         P)
             P=${OPTARG}
+            if [[ -z "${P}" ]]; then
+                P="auto"
+            fi
             ;;
         s)
             s=${OPTARG}
