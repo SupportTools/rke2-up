@@ -7,12 +7,12 @@ Coming soon.
 
 ### Install
 ```bash
-sudo curl -o /usr/local/bin/rke2-up https://raw.githubusercontent.com/rancher/rke2-up/main/scripts/build/rke2-up.sh
+sudo curl -o /usr/local/bin/rke2-up https://raw.githubusercontent.com/SupportTools/rke2-up/main/scripts/rke2-up.sh
 sudo chmod +x /usr/local/bin/rke2-up
 ```
 or
 ```bash
-wget -O rke2-up https://raw.githubusercontent.com/rancher/rke2-up/main/scripts/build/rke2-up.sh
+wget -O rke2-up https://raw.githubusercontent.com/SupportTools/rke2-up/main/scripts/rke2-up.sh
 chmod +x rke2-up
 sudo mv rke2-up /usr/local/bin/
 ```
