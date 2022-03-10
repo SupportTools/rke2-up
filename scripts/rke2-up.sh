@@ -43,12 +43,12 @@ fi
 if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]
 then
   echo "Installing RKE2 Server...."
-  curl -sfL https://get.rke2.io | ${INSTALL_RKE2_VERSION_FLAG} sh -
+  curl -sfL https://get.rke2.io | `echo $INSTALL_RKE2_VERSION_FLAG` sh -
   echo "Setting up RKE2 Server service..."
   systemctl enable rke2-server.service
 else
   echo "Installing RKE2 agent...."
-  curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" ${INSTALL_RKE2_VERSION_FLAG} sh -
+  curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" `echo $INSTALL_RKE2_VERSION_FLAG` sh -
   echo "Setting up RKE2 agent service..."
   systemctl enable rke2-agent.service
 fi
