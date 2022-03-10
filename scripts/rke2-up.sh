@@ -86,6 +86,8 @@ if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]
 then
   echo 'write-kubeconfig-mode: "0600"' >> /etc/rancher/rke2/config.yaml
   echo 'kube-apiserver-arg: "kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname"' >> /etc/rancher/rke2/config.yaml
+  echo 'profile: "cis-1.5"' >> /etc/rancher/rke2/config.yaml  
+  echo 'selinux: true' >> /etc/rancher/rke2/config.yaml  
   echo "advertise-address: ${privateip}" >> /etc/rancher/rke2/config.yaml
   echo 'tls-san:' >> /etc/rancher/rke2/config.yaml
   echo "  - ${publicip}" >> /etc/rancher/rke2/config.yaml
