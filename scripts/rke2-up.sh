@@ -13,15 +13,9 @@ while getopts ":m:v:s:t:p:P:" o; do
             ;;
         p)
             p=${OPTARG}
-            if [[ -z "${p}" ]]; then
-                p="auto"
-            fi
             ;;
         P)
             P=${OPTARG}
-            if [[ -z "${P}" ]]; then
-                P="auto"
-            fi
             ;;
         s)
             s=${OPTARG}
@@ -46,13 +40,19 @@ then
 fi
 
 test-ip() {
+  echo "Checking IP to see if it's valid $1"
+  if [ "$(echo "$1" | sed -re '/^$/d' | wc -l)" -gt 1 ]; then
+    echo "Multiple Private IPs found"
+    echo "Please specify the PrivateIP"
+    exit 2
+  fi
   if [[ ! $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Invalid IP address"
-    return 1
+    exit 2
   fi
   if [[ $1 == '127.0.0.1' ]]; then
     echo "Found loopback"
-    return 1
+    exit 2
   fi
   return 0
 }
@@ -78,7 +78,7 @@ else
 fi
 
 echo "Collecting IPs..."
-if [[ "${p}" == "auto" ]]
+if [[ "${p}" == "auto" ]] || [[ -z "${p}" ]]
 then
   echo "Checking using hostname -i..."
   privateip=`hostname -i | awk '{print $1}'`
@@ -123,7 +123,7 @@ then
   echo "No private IP detected or set"
   exit 2
 fi
-if [[ "${P}" == "auto" ]]; then
+if [[ "${P}" == "auto" ]] || [[ -z "${P}" ]]; then
   publicip=`curl -s ifconfig.me.`
 elif [[ ! -z $P ]]; then
   publicip=$P
