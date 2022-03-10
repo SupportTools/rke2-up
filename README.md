@@ -41,7 +41,7 @@ Bootstrap info, please add the following flags for the rest of the nodes in this
 
 Run the following command on the rest of the nodes in the cluster. NOTE: You should join master nodes one at a time.
 ```bash
-build-rke2 -m all -v v1.21.6+rke2r1 -s 10.128.0.6 -t MyAFakeKey::server:YouShouldReplaceMe
+rke2-up -m all -v v1.21.6+rke2r1 -s 10.128.0.6 -t MyAFakeKey::server:YouShouldReplaceMe
 ```
 
 ### Create cluster with separate master and worker nodes
@@ -62,12 +62,12 @@ Bootstrap info, please add the following flags for the rest of the nodes in this
 
 Run the following command on the rest of the master nodes in the cluster. NOTE: You should join master nodes one at a time.
 ```bash
-build-rke2 -m master -v v1.21.6+rke2r1 -s 10.128.0.6 -t MyAFakeKey::server:YouShouldReplaceMe
+rke2-up -m master -v v1.21.6+rke2r1 -s 10.128.0.6 -t MyAFakeKey::server:YouShouldReplaceMe
 ```
 
 #### Create worker nodes
 
 Run the following command on each worker nodes. Note: You can run this command on multiple nodes at the same time.
 ```bash
-build-rke2 -m worker -v v1.21.6+rke2r1 -s 10.128.0.6 -t MyAFakeKey::server:YouShouldReplaceMe
+rke2-up -m worker -v v1.21.6+rke2r1 -s 10.128.0.6 -t MyAFakeKey::server:YouShouldReplaceMe
 ```
