@@ -35,20 +35,20 @@ fi
 
 if [ -z "${v}" ];
 then
-  INSTALL_RKE2_VERSION_FLAG=""
+  export INSTALL_RKE2_VERSION=""
 else
-  INSTALL_RKE2_VERSION_FLAG=`echo "INSTALL_RKE2_VERSION=${v}"`
+  export INSTALL_RKE2_VERSION="${v}"
 fi
 
 if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]
 then
   echo "Installing RKE2 Server...."
-  curl -sfL https://get.rke2.io | `echo $INSTALL_RKE2_VERSION_FLAG` sh -
+  curl -sfL https://get.rke2.io | sh -
   echo "Setting up RKE2 Server service..."
   systemctl enable rke2-server.service
 else
   echo "Installing RKE2 agent...."
-  curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" `echo $INSTALL_RKE2_VERSION_FLAG` sh -
+  curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" sh -
   echo "Setting up RKE2 agent service..."
   systemctl enable rke2-agent.service
 fi
