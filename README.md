@@ -39,7 +39,7 @@ Bootstrap info, please add the following flags for the rest of the nodes in this
 -s 10.128.0.6 -t MyAFakeKey::server:YouShouldReplaceMe
 ```
 
-Run the following command on the rest of the nodes in the cluster one at a time.
+Run the following command on the rest of the nodes in the cluster. NOTE: You should join master nodes one at a time.
 ```bash
 build-rke2 -m all -v v1.21.6+rke2r1 -s 10.128.0.6 -t MyAFakeKey::server:YouShouldReplaceMe
 ```
@@ -60,7 +60,7 @@ Bootstrap info, please add the following flags for the rest of the nodes in this
 -s 10.128.0.6 -t MyAFakeKey::server:YouShouldReplaceMe
 ```
 
-Run the following command on the rest of the master nodes in the cluster one at a time.
+Run the following command on the rest of the master nodes in the cluster. NOTE: You should join master nodes one at a time.
 ```bash
 build-rke2 -m master -v v1.21.6+rke2r1 -s 10.128.0.6 -t MyAFakeKey::server:YouShouldReplaceMe
 ```
