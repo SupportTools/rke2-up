@@ -154,6 +154,11 @@ else
   echo "token: ${t}" >> /etc/rancher/rke2/config.yaml
 fi
 
+if [[ ! -z $publicip ]]; then
+  echo "node-external-ip: ${publicip}" >> /etc/rancher/rke2/config.yaml
+fi
+
+
 if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]
 then
   echo 'write-kubeconfig-mode: "0600"' >> /etc/rancher/rke2/config.yaml
@@ -161,17 +166,13 @@ then
   echo 'profile: "cis-1.5"' >> /etc/rancher/rke2/config.yaml  
   echo 'selinux: true' >> /etc/rancher/rke2/config.yaml  
   echo "advertise-address: ${privateip}" >> /etc/rancher/rke2/config.yaml
-  echo "node-ip: ${privateip}" >> /etc/rancher/rke2/config.yaml
-fi
-if [[ ! -z $publicip ]]; then
-  echo 'tls-san:' >> /etc/rancher/rke2/config.yaml
-  echo "  - ${publicip}" >> /etc/rancher/rke2/config.yaml  
-  echo "node-external-ip: ${publicip}" >> /etc/rancher/rke2/config.yaml
-fi
-if [[ "${m}" ==  "master" ]]
-then
   echo 'node-taint:' >> /etc/rancher/rke2/config.yaml
   echo '  - "CriticalAddonsOnly=true:NoExecute"' >> /etc/rancher/rke2/config.yaml
+  echo "node-ip: ${privateip}" >> /etc/rancher/rke2/config.yaml
+  if [[ ! -z $publicip ]]; then
+    echo 'tls-san:' >> /etc/rancher/rke2/config.yaml
+    echo "  - ${publicip}" >> /etc/rancher/rke2/config.yaml
+  fi
 fi
 
 echo "Applying hardening settings..."
