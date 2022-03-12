@@ -189,14 +189,23 @@ fi
 
 if [[ -z "${s}" ]]; then
   token=`cat /var/lib/rancher/rke2/server/token`
-  echo "::Bootstrap info::"
+  echo ":: Bootstrap info ::"
   if [[ "${m}" ==  "all" ]]; then
-    echo "Run the following command on the rest of the all nodes in the cluster. NOTE: You should join nodes one at a time."
+    echo "::: Run the following command on the rest of the all nodes in the cluster. :::"
+    echo "NOTE: You should join nodes one at a time."
+    echo ""
     echo "rke2-up -m all -v ${v} -s ${privateip} -t ${token}"
+    echo ""
   else
-    echo "Run the following command on the rest of the master nodes in the cluster. NOTE: You should join master nodes one at a time."
+    echo "::: Run the following command on the rest of the master nodes in the cluster. :::"
+    echo "NOTE: You should join master nodes one at a time."
+    echo ""
     echo "rke2-up -m master -v ${v} -s ${privateip} -t ${token}"
-    echo "Run the following command on each worker nodes. Note: You can run this command on multiple nodes at the same time."
+    echo ""
+    echo "::: Run the following command on each worker nodes. :::"
+    echo "Note: You can run this command on multiple nodes at the same time."
+    echo ""
     echo "rke2-up -m worker -v ${v} -s ${privateip} -t ${token}"
+    echo ""
   fi
 fi
