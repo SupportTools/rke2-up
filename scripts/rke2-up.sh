@@ -30,8 +30,7 @@ while getopts ":m:v:s:t:p:P:" o; do
 done
 shift $((OPTIND-1))
 
-if [ -z "${m}" ];
-then
+if [ -z "${m}" ]; then
   echo "The mode flag is required"
   echo "master: Installs RKE2 Server with CriticalAddonsOnly taint"
   echo "all: Installs RKE2 Server with worker role"
@@ -57,15 +56,13 @@ test-ip() {
   return 0
 }
 
-if [ -z "${v}" ];
-then
+if [ -z "${v}" ]; then
   export INSTALL_RKE2_VERSION=""
 else
   export INSTALL_RKE2_VERSION="${v}"
 fi
 
-if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]
-then
+if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]; then
   echo "Installing RKE2 Server...."
   curl -sfL https://get.rke2.io | sh -
   echo "Setting up RKE2 Server service..."
@@ -78,8 +75,7 @@ else
 fi
 
 echo "Collecting IPs..."
-if [[ "${p}" == "auto" ]] || [[ -z "${p}" ]]
-then
+if [[ "${p}" == "auto" ]] || [[ -z "${p}" ]]; then
   echo "Checking using hostname -i..."
   privateip=`hostname -i | awk '{print $1}'`
   if test-ip $privateip; then
@@ -118,8 +114,7 @@ else
   privateip=$p
 fi
 
-if [[ -z $privateip ]]
-then
+if [[ -z $privateip ]]; then
   echo "No private IP detected or set"
   exit 2
 fi
@@ -145,8 +140,7 @@ echo "Creating RKE2 config..."
 mkdir -p /etc/rancher/rke2/
 rm -f /etc/rancher/rke2/config.yaml
 
-if [[ -z "${s}" ]]
-then
+if [[ -z "${s}" ]]; then
   echo "No server is set, RKE2 will bootstrap a new cluster"
 else
   echo "Joining an existing RKE2 cluster"
@@ -159,12 +153,11 @@ if [[ ! -z $publicip ]]; then
 fi
 
 
-if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]
-then
+if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]; then
   echo 'write-kubeconfig-mode: "0600"' >> /etc/rancher/rke2/config.yaml
   echo 'kube-apiserver-arg: "kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname"' >> /etc/rancher/rke2/config.yaml
-  echo 'profile: "cis-1.5"' >> /etc/rancher/rke2/config.yaml  
-  echo 'selinux: true' >> /etc/rancher/rke2/config.yaml  
+  echo 'profile: "cis-1.5"' >> /etc/rancher/rke2/config.yaml
+  echo 'selinux: true' >> /etc/rancher/rke2/config.yaml
   echo "advertise-address: ${privateip}" >> /etc/rancher/rke2/config.yaml
   echo 'node-taint:' >> /etc/rancher/rke2/config.yaml
   echo '  - "CriticalAddonsOnly=true:NoExecute"' >> /etc/rancher/rke2/config.yaml
@@ -176,15 +169,13 @@ then
 fi
 
 echo "Applying hardening settings..."
-if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]
-then
+if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]; then
   useradd -r -c "etcd user" -s /sbin/nologin -M etcd -U
 fi
 cp -f /usr/local/share/rke2/rke2-cis-sysctl.conf /etc/sysctl.d/60-rke2-cis.conf
 systemctl restart systemd-sysctl
 
-if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]
-then
+if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]; then
   echo "Starting RKE2 Server..."
   systemctl start rke2-server.service
   echo "Setting kubectl..."
@@ -196,12 +187,10 @@ else
   systemctl start rke2-agent.service
 fi
 
-if [[ -z "${s}" ]]
-then
+if [[ -z "${s}" ]]; then
   token=`cat /var/lib/rancher/rke2/server/token`
   echo "::Bootstrap info::"
-  if [[ "${m}" ==  "all" ]]
-  then
+  if [[ "${m}" ==  "all" ]]; then
     echo "Run the following command on the rest of the all nodes in the cluster. NOTE: You should join nodes one at a time."
     echo "rke2-up -m all -v ${v} -s ${privateip} -t ${token}"
   else
