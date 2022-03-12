@@ -44,15 +44,15 @@ test-ip() {
   if [ "$(echo "$1" | sed -re '/^$/d' | wc -l)" -gt 1 ]; then
     echo "Multiple Private IPs found"
     echo "Please specify the PrivateIP"
-    exit 2
+    return 2
   fi
   if [[ ! $1 =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Invalid IP address"
-    exit 2
+    return 2
   fi
-  if [[ $1 == '127.0.0.1' ]]; then
+  if [[ $1 =~ '127'+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "Found loopback"
-    exit 2
+    return 2
   fi
   return 0
 }
