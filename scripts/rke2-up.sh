@@ -10,7 +10,7 @@ while getopts ":m:v:s:t:p:P:" o; do
             ;;
         l)
             h=${OPTARG}
-            ((h == enable || h == disable )) || usage
+            ((l == enable || l == disable )) || usage
             ;;
         v)
             v=${OPTARG}
