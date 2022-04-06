@@ -9,8 +9,8 @@ while getopts ":m:v:s:t:p:P:" o; do
             ((m == master || m == worker || m == all)) || usage
             ;;
         l)
-            h=${OPTARG}
-            ((l == enable || l == disable )) || usage
+            l=${OPTARG}
+            ((l == enable || l == disable)) || usage
             ;;
         v)
             v=${OPTARG}
