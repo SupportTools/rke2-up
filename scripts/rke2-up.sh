@@ -2,7 +2,7 @@
 
 usage() { echo "Usage: $0 [-p PrivateIP|auto] [-P PublicIP|auto|disable] [-m master|worker|all] [-l enable|disable] [-v v1.21.6+rke2r1] [-s 192.168.1.100] [-t K1075c2da4946626e73...] " 1>&2; exit 1; }
 
-while getopts ":m:h:v:s:t:p:P:" o; do
+while getopts ":m:h:l:v:s:t:p:P:" o; do
     case "${o}" in
         m)
             m=${OPTARG}
