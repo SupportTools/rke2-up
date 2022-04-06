@@ -159,8 +159,10 @@ if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]; then
   echo 'profile: "cis-1.5"' >> /etc/rancher/rke2/config.yaml
   echo 'selinux: true' >> /etc/rancher/rke2/config.yaml
   echo "advertise-address: ${privateip}" >> /etc/rancher/rke2/config.yaml
-  echo 'node-taint:' >> /etc/rancher/rke2/config.yaml
-  echo '  - "CriticalAddonsOnly=true:NoExecute"' >> /etc/rancher/rke2/config.yaml
+  if [[ "${m}" ==  "master" ]]; then
+    echo 'node-taint:' >> /etc/rancher/rke2/config.yaml
+    echo '  - "CriticalAddonsOnly=true:NoExecute"' >> /etc/rancher/rke2/config.yaml
+  fi
   echo "node-ip: ${privateip}" >> /etc/rancher/rke2/config.yaml
   if [[ ! -z $publicip ]]; then
     echo 'tls-san:' >> /etc/rancher/rke2/config.yaml
