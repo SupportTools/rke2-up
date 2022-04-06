@@ -32,6 +32,9 @@ Usage: rke2-up [-p PrivateIP|auto] [-P PublicIP|auto|disable] [-m master|worker|
     auto: auto-detect the public IP address of the node.
     disable: disable public IP address.
     PublicIP: use the specified IP address. (Exameple: 1.2.3.4)
+-l enable|disable: Locks down the cluster using the CIS Profile.
+    enable: enable cluster hardening.
+    disable: disable cluster hardening.
 -m master|worker|all: Type of node.
     master: Joins node as master node.
     worker: Joins node as worker node.
@@ -50,19 +53,19 @@ Usage: rke2-up [-p PrivateIP|auto] [-P PublicIP|auto|disable] [-m master|worker|
 
 Run the following command on the first node in the new cluster to bootstrap the node.
 ```bash
-rke2-up -m all -v v1.21.6+rke2r1
+rke2-up -m all -l disable -v v1.21.6+rke2r1
 ```
 
 At the end of this command, you should see an output like this. Please save this as you will need it to join the other nodes to the cluster.
 ```bash
 ::Bootstrap info::
 Run the following command on the rest of the all nodes in the cluster. NOTE: You should join nodes one at a time.
-rke2-up -m all -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
-```
+rke2-up -m all -l disable -h -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
+``` 
 
 Run the following command on the rest of the nodes in the cluster. NOTE: You should join master nodes one at a time.
 ```bash
-rke2-up -m all -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
+rke2-up -m all -l disable -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
 ```
 
 ### Create cluster with separate master and worker nodes
@@ -71,26 +74,26 @@ rke2-up -m all -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShou
 
 Run the following command on the first master node in the new cluster to bootstrap the node.
 ```bash
-rke2-up -m master -v v1.21.6+rke2r1
+rke2-up -m master -l disable -v v1.21.6+rke2r1
 ```
 
 At the end of this command, you should see an output like this. Please save this as you will need it to join the other nodes to the cluster.
 ```bash
 ::Bootstrap info::
 Run the following command on the rest of the master nodes in the cluster. NOTE: You should join master nodes one at a time.
-rke2-up -m master -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
+rke2-up -m master -l disable -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
 Run the following command on each worker nodes. Note: You can run this command on multiple nodes at the same time.
-rke2-up -m worker -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
+rke2-up -m worker -l disable -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
 ```
 
 Run the following command on the rest of the master nodes in the cluster. NOTE: You should join master nodes one at a time.
 ```bash
-rke2-up -m master -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
+rke2-up -m master -l disable -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
 ```
 
 #### Create worker nodes
 
 Run the following command on each worker nodes. Note: You can run this command on multiple nodes at the same time.
 ```bash
-rke2-up -m worker -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
+rke2-up -m worker -l disable -v v1.21.6+rke2r1 -s 10.132.191.210 -t MyAFakeKey::server:YouShouldReplaceMe
 ```

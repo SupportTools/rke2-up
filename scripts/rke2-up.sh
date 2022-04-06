@@ -1,12 +1,16 @@
 #!/bin/bash
 
-usage() { echo "Usage: $0 [-p PrivateIP|auto] [-P PublicIP|auto|disable] [-m master|worker|all] [-v v1.21.6+rke2r1] [-s 192.168.1.100] [-t K1075c2da4946626e73...] " 1>&2; exit 1; }
+usage() { echo "Usage: $0 [-p PrivateIP|auto] [-P PublicIP|auto|disable] [-m master|worker|all] [-l enable|disable] [-v v1.21.6+rke2r1] [-s 192.168.1.100] [-t K1075c2da4946626e73...] " 1>&2; exit 1; }
 
 while getopts ":m:v:s:t:p:P:" o; do
     case "${o}" in
         m)
             m=${OPTARG}
             ((m == master || m == worker || m == all)) || usage
+            ;;
+        l)
+            h=${OPTARG}
+            ((h == enable || h == disable )) || usage
             ;;
         v)
             v=${OPTARG}
@@ -156,8 +160,10 @@ fi
 if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]; then
   echo 'write-kubeconfig-mode: "0600"' >> /etc/rancher/rke2/config.yaml
   echo 'kube-apiserver-arg: "kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname"' >> /etc/rancher/rke2/config.yaml
-  echo 'profile: "cis-1.5"' >> /etc/rancher/rke2/config.yaml
-  echo 'selinux: true' >> /etc/rancher/rke2/config.yaml
+  if [[ "${l}" == "enable" ]]; then
+    echo 'profile: "cis-1.5"' >> /etc/rancher/rke2/config.yaml
+    echo 'selinux: true' >> /etc/rancher/rke2/config.yaml
+  fi
   echo "advertise-address: ${privateip}" >> /etc/rancher/rke2/config.yaml
   if [[ "${m}" ==  "master" ]]; then
     echo 'node-taint:' >> /etc/rancher/rke2/config.yaml
@@ -170,12 +176,14 @@ if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]; then
   fi
 fi
 
-echo "Applying hardening settings..."
-if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]; then
-  useradd -r -c "etcd user" -s /sbin/nologin -M etcd -U
+if [[ "${l}" == "enable" ]]; then
+  echo "Applying hardening settings..."
+  if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]; then
+    useradd -r -c "etcd user" -s /sbin/nologin -M etcd -U
+  fi
+  cp -f /usr/local/share/rke2/rke2-cis-sysctl.conf /etc/sysctl.d/60-rke2-cis.conf
+  systemctl restart systemd-sysctl
 fi
-cp -f /usr/local/share/rke2/rke2-cis-sysctl.conf /etc/sysctl.d/60-rke2-cis.conf
-systemctl restart systemd-sysctl
 
 if [[ "${m}" ==  "master" ]] || [[ "${m}" ==  "all" ]]; then
   echo "Starting RKE2 Server..."
